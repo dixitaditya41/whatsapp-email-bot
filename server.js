@@ -32,18 +32,7 @@ app.get('/', (req, res) => {
     res.send('Whatsapp Email Bot is running...');
 });
 
-// Test endpoint to verify query parameter parsing
-app.get('/test-query', (req, res) => {
-    res.json({
-        message: 'Query parameter test',
-        rawUrl: req.url,
-        queryString: req.url.split('?')[1] || 'none',
-        parsedQuery: req.query,
-        example: 'Try: /test-query?hub.mode=subscribe&hub.verify_token=test&hub.challenge=123'
-    });
-});
-
-app.use(routes);
+app.use(routes)
 
 connectDB().then(() => {
     try {
