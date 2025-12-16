@@ -10,7 +10,9 @@ export const verifyWebhook = (req, res) => {
   // Log all request details for debugging
   console.log("🔍 Webhook verification request received");
   console.log("Method:", req.method);
-  console.log("URL:", req.url);
+  console.log("Full URL:", req.protocol + "://" + req.get('host') + req.originalUrl);
+  console.log("Path:", req.path);
+  console.log("Original URL:", req.originalUrl);
   console.log("Query params:", JSON.stringify(req.query, null, 2));
   console.log("VERIFY_TOKEN from env:", VERIFY_TOKEN ? "✅ Set" : "❌ NOT SET");
 

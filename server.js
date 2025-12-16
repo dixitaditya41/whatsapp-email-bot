@@ -18,6 +18,35 @@ app.get('/', (req, res) => {
     res.send('Whatsapp Email Bot is running...');
 });
 
+// Test endpoint to verify webhook configuration
+app.get('/whatsapp/test-webhook', (req, res) => {
+    const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN;
+    res.json({
+        status: 'Webhook Configuration Test',
+        webhookUrl: `${req.protocol}://${req.get('host')}/whatsapp/webhook`,
+        verifyTokenSet: !!verifyToken,
+        verifyTokenPreview: verifyToken ? verifyToken.substring(0, 4) + '...' + verifyToken.slice(-4) : 'NOT SET',
+        instructions: [
+            '1. Go to Meta for Developers → WhatsApp → Configuration → Webhooks',
+            '2. Set Callback URL to: ' + `${req.protocol}://${req.get('host')}/whatsapp/webhook`,
+            '3. Set Verify token to match your WHATSAPP_VERIFY_TOKEN',
+            '4. Click "Verify and save"',
+            '5. Check your server logs for verification status'
+        ]
+    });
+});
+
+// Handle incorrect webhook path (common mistake)
+app.get('/webhook', (req, res) => {
+    console.log('⚠️  Request received at /webhook (incorrect path)');
+    console.log('The correct webhook URL is: /whatsapp/webhook');
+    res.status(400).json({
+        error: 'Incorrect webhook path',
+        message: 'The webhook endpoint is at /whatsapp/webhook, not /webhook',
+        correctUrl: `${req.protocol}://${req.get('host')}/whatsapp/webhook`
+    });
+});
+
 app.use(routes);
 
 connectDB().then(() => {
