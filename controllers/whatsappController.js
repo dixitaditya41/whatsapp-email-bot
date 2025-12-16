@@ -11,9 +11,17 @@ export const verifyWebhook = (req, res) => {
   console.log("🔍 Webhook verification request received");
   console.log("Method:", req.method);
   console.log("Full URL:", req.protocol + "://" + req.get('host') + req.originalUrl);
+  console.log("Raw URL:", req.url);
   console.log("Path:", req.path);
   console.log("Original URL:", req.originalUrl);
-  console.log("Query params:", JSON.stringify(req.query, null, 2));
+  console.log("Query string (raw):", req.url.split('?')[1] || "none");
+  console.log("Query params (parsed):", JSON.stringify(req.query, null, 2));
+  console.log("Headers:", JSON.stringify({
+    'user-agent': req.get('user-agent'),
+    'x-forwarded-for': req.get('x-forwarded-for'),
+    'x-forwarded-proto': req.get('x-forwarded-proto'),
+    'host': req.get('host')
+  }, null, 2));
   console.log("VERIFY_TOKEN from env:", VERIFY_TOKEN ? "✅ Set" : "❌ NOT SET");
 
   // Check both query params and body (some proxies might put them in body)
@@ -32,10 +40,27 @@ export const verifyWebhook = (req, res) => {
     return res.status(500).send("Server configuration error: VERIFY_TOKEN not set");
   }
 
+  // Check if this looks like a WhatsApp request
+  const userAgent = req.get('user-agent') || '';
+  const isWhatsAppRequest = userAgent.includes('facebookexternalhit') || 
+                            userAgent.includes('Facebot') ||
+                            req.get('x-forwarded-for')?.includes('facebook') ||
+                            req.ip?.includes('facebook');
+  
+  console.log("User-Agent:", userAgent);
+  console.log("Is WhatsApp request:", isWhatsAppRequest);
+  console.log("Client IP:", req.ip || req.get('x-forwarded-for'));
+
   // If this is just a health check or empty request, return 200 but log it
   if (!mode && !token && !challenge) {
-    console.log("ℹ️  Webhook endpoint accessed without verification parameters (might be health check)");
-    return res.status(200).send("Webhook endpoint is active. Waiting for verification request.");
+    if (!isWhatsAppRequest) {
+      console.log("ℹ️  Webhook endpoint accessed without verification parameters (likely health check or manual access)");
+      console.log("⚠️  This is NOT a WhatsApp verification request!");
+      console.log("💡 WhatsApp verification requests will include query parameters: hub.mode, hub.verify_token, hub.challenge");
+    } else {
+      console.log("⚠️  WhatsApp request received but missing verification parameters!");
+    }
+console.log("Webhook endpoint is active. Waiting for verification request.");
   }
 
   if (mode && token && mode === "subscribe" && token === VERIFY_TOKEN) {

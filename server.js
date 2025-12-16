@@ -8,9 +8,23 @@ import routes from './routes/index.js';
 const app = express();
 
 dotenv.config();
+
+// Trust proxy for accurate protocol detection (important for Render.com)
+app.set('trust proxy', true);
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Middleware to log all incoming requests for debugging
+app.use((req, res, next) => {
+  if (req.path.includes('webhook')) {
+    console.log(`\n📥 Incoming ${req.method} request to ${req.path}`);
+    console.log(`Raw URL: ${req.url}`);
+    console.log(`Query string: ${req.url.split('?')[1] || 'none'}`);
+  }
+  next();
+});
 
 const PORT = process.env.PORT || 5000;
 
@@ -18,32 +32,14 @@ app.get('/', (req, res) => {
     res.send('Whatsapp Email Bot is running...');
 });
 
-// Test endpoint to verify webhook configuration
-app.get('/whatsapp/test-webhook', (req, res) => {
-    const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN;
+// Test endpoint to verify query parameter parsing
+app.get('/test-query', (req, res) => {
     res.json({
-        status: 'Webhook Configuration Test',
-        webhookUrl: `${req.protocol}://${req.get('host')}/whatsapp/webhook`,
-        verifyTokenSet: !!verifyToken,
-        verifyTokenPreview: verifyToken ? verifyToken.substring(0, 4) + '...' + verifyToken.slice(-4) : 'NOT SET',
-        instructions: [
-            '1. Go to Meta for Developers → WhatsApp → Configuration → Webhooks',
-            '2. Set Callback URL to: ' + `${req.protocol}://${req.get('host')}/whatsapp/webhook`,
-            '3. Set Verify token to match your WHATSAPP_VERIFY_TOKEN',
-            '4. Click "Verify and save"',
-            '5. Check your server logs for verification status'
-        ]
-    });
-});
-
-// Handle incorrect webhook path (common mistake)
-app.get('/webhook', (req, res) => {
-    console.log('⚠️  Request received at /webhook (incorrect path)');
-    console.log('The correct webhook URL is: /whatsapp/webhook');
-    res.status(400).json({
-        error: 'Incorrect webhook path',
-        message: 'The webhook endpoint is at /whatsapp/webhook, not /webhook',
-        correctUrl: `${req.protocol}://${req.get('host')}/whatsapp/webhook`
+        message: 'Query parameter test',
+        rawUrl: req.url,
+        queryString: req.url.split('?')[1] || 'none',
+        parsedQuery: req.query,
+        example: 'Try: /test-query?hub.mode=subscribe&hub.verify_token=test&hub.challenge=123'
     });
 });
 
