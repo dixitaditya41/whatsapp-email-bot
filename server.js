@@ -20,14 +20,19 @@ app.get('/', (req, res) => {
 app.use(routes);
 
 connectDB().then(() => {
-    try{
-    app.listen(PORT, () => {
-        console.log(`Server is running on port ${PORT}`);
-    });
+    try {
+        app.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`);
+            console.log(`Webhook URL should be configured as: <YOUR_DOMAIN>/whatsapp/webhook`);
+            console.log(`Google Redirect URI should be: <YOUR_DOMAIN>/google/callback`);
+
+            if (!process.env.WHATSAPP_TOKEN) console.warn("WARNING: WHATSAPP_TOKEN is missing in .env");
+            if (!process.env.GOOGLE_CLIENT_ID) console.warn("WARNING: GOOGLE_CLIENT_ID is missing in .env");
+        });
     }
-    catch(error){
+    catch (error) {
         console.error("Failed to start server", error);
-    }     
+    }
 })
 
 

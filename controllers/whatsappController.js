@@ -37,7 +37,7 @@ export const receiveMessage = async (req, res) => {
 
       // Fetch user from database
       let user = await User.findOne({ whatsappNumber: from });
-      
+
       // If user doesn't exist, create one
       if (!user) {
         user = await User.create({ whatsappNumber: from });
@@ -52,7 +52,7 @@ export const receiveMessage = async (req, res) => {
       // Handle commands
       if (text === "send email" || text === "/send" || text === "send") {
         if (!user.gmailConnected) {
-          await sendWhatsAppMessage(from, "❌ Gmail not connected. Please connect your Gmail first.\n\nUse this link to connect:\n" + 
+          await sendWhatsAppMessage(from, "❌ Gmail not connected. Please connect your Gmail first.\n\nUse this link to connect:\n" +
             `${process.env.BASE_URL || "http://localhost:5000"}/google/auth?wa=${from}`);
           return res.sendStatus(200);
         }
@@ -83,8 +83,8 @@ More features coming soon!`;
 
     res.sendStatus(200);
   } catch (err) {
-    console.error("Error:", err);
-    res.sendStatus(500);
+    console.error("Error in receiveMessage:", err.response ? err.response.data : err.message);
+    res.sendStatus(200);
   }
 };
 
