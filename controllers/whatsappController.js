@@ -26,11 +26,6 @@ export const receiveMessage = async (req, res) => {
     console.log("📨 Webhook POST received");
     console.log("Request body:", JSON.stringify(req.body, null, 2));
 
-    // Handle webhook verification (if it comes as POST)
-    if (req.body["hub.mode"] || req.query["hub.mode"]) {
-      return verifyWebhook(req, res);
-    }
-
     const entry = req.body.entry?.[0];
     const changes = entry?.changes?.[0];
     const value = changes?.value;
@@ -72,8 +67,8 @@ export const receiveMessage = async (req, res) => {
     }
 
     // Check if user is in a conversation flow
-    if (user.conversationState?.step !== null && user.conversationState?.step !== undefined) {
-      console.log("User in conversation flow, step:", user.conversationState.step);
+    if (user.conversationState?.step) {
+      console.log("User in conversation, step:", user.conversationState.step);
       await handleEmailConversation(from, text);
       return res.sendStatus(200);
     }
@@ -82,7 +77,7 @@ export const receiveMessage = async (req, res) => {
     if (textLower === "send email" || textLower === "/send" || textLower === "send") {
       if (!user.gmailConnected) {
         await sendWhatsAppMessage(from, "❌ Gmail not connected. Please connect your Gmail first.\n\nUse this link to connect:\n" +
-          `${process.env.BASE_URL || "http://localhost:5000"}/google/auth?wa=${from}`);
+          `${process.env.BASE_URL || "http://localhost:3000"}/google/auth?wa=${from}`);
         return res.sendStatus(200);
       }
       await startEmailConversation(from);
