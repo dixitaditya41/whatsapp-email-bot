@@ -7,37 +7,18 @@ dotenv.config();
 export const verifyWebhook = (req, res) => {
   const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
 
-  // Check both query params and body (some proxies might put them in body)
-  const mode = req.query["hub.mode"] || req.body?.["hub.mode"];
-  const token = req.query["hub.verify_token"] || req.body?.["hub.verify_token"];
-  const challenge = req.query["hub.challenge"] || req.body?.["hub.challenge"];
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
 
-  // If no VERIFY_TOKEN is set, we can't verify
-  if (!VERIFY_TOKEN) {
-    console.error("❌ WHATSAPP_VERIFY_TOKEN is not set in environment variables!");
-    return res.status(500).send("Server configuration error: VERIFY_TOKEN not set");
+  if (mode === "subscribe" && token === VERIFY_TOKEN) {
+    console.log("✅ Webhook Verified");
+    return res.status(200).send(challenge); // MUST be plain text
   }
 
-  // Check if this looks like a WhatsApp request
-  const userAgent = req.get('user-agent') || '';
-  const isWhatsAppRequest = userAgent.includes('facebookexternalhit') || 
-                            userAgent.includes('Facebot') ||
-                            req.get('x-forwarded-for')?.includes('facebook') ||
-                            req.ip?.includes('facebook');
-  
-
-  if (mode && token && mode === "subscribe" && token === VERIFY_TOKEN) {
-    console.log("✅ Webhook Verified Successfully!");
-    return res.status(200).send(challenge);
-  } else {
-    console.log("❌ Webhook Verification Failed");
-    console.log("Expected mode: 'subscribe', got:", mode);
-    console.log("Expected token:", VERIFY_TOKEN ? "***" + VERIFY_TOKEN.slice(-4) : "NOT SET");
-    console.log("Received token:", token ? "***" + token.slice(-4) : "none");
-    return res.sendStatus(403);
-  }
+  console.log("❌ Webhook Verification Failed");
+  return res.sendStatus(403);
 };
-
 
 export const receiveMessage = async (req, res) => {
   try {

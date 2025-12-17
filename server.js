@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDB } from './db/config.js';
 import routes from './routes/index.js';
+import { sendWhatsAppMessage } from './services/whatsappService.js';
 
 
 const app = express();
@@ -18,12 +19,12 @@ app.use(express.urlencoded({ extended: true }));
 
 // Middleware to log all incoming requests for debugging
 app.use((req, res, next) => {
-  if (req.path.includes('webhook')) {
-    console.log(`\n📥 Incoming ${req.method} request to ${req.path}`);
-    console.log(`Raw URL: ${req.url}`);
-    console.log(`Query string: ${req.url.split('?')[1] || 'none'}`);
-  }
-  next();
+    if (req.path.includes('webhook')) {
+        console.log(`\n📥 Incoming ${req.method} request to ${req.path}`);
+        console.log(`Raw URL: ${req.url}`);
+        console.log(`Query string: ${req.url.split('?')[1] || 'none'}`);
+    }
+    next();
 });
 
 const PORT = process.env.PORT || 5000;
@@ -34,12 +35,23 @@ app.get('/', (req, res) => {
 
 app.use(routes)
 
+app.get("/test-send", async (req, res) => {
+    try {
+        const result = await sendWhatsAppMessage(
+            "919628941748",
+            "✅ Message sent from backend successfully!"
+        );
+        res.json(result);
+    } catch (err) {
+        console.error(err.response?.data || err.message);
+        res.status(500).send("Failed to send message");
+    }
+});
+
 connectDB().then(() => {
     try {
         app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
-            console.log(`Webhook URL should be configured as: <YOUR_DOMAIN>/whatsapp/webhook`);
-            console.log(`Google Redirect URI should be: <YOUR_DOMAIN>/google/callback`);
 
             if (!process.env.WHATSAPP_TOKEN) console.warn("⚠️  WARNING: WHATSAPP_TOKEN is missing in .env");
             if (!process.env.WHATSAPP_VERIFY_TOKEN) console.warn("⚠️  WARNING: WHATSAPP_VERIFY_TOKEN is missing in .env");
