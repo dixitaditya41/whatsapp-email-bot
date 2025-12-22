@@ -4,21 +4,30 @@ import { handleEmailConversation, startEmailConversation } from "../services/ema
 import User from "../models/User.js";
 dotenv.config();
 
-export const verifyWebhook = (req, res) => {
-  const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
+export const verifyWebhook = async (req, res) => {
+  try {
+    const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
 
-  const mode = req.query["hub.mode"];
-  const token = req.query["hub.verify_token"];
-  const challenge = req.query["hub.challenge"];
+    const mode = req.query["hub.mode"];
+    const token = req.query["hub.verify_token"];
+    const challenge = req.query["hub.challenge"];
 
-  if (mode === "subscribe" && token === VERIFY_TOKEN) {
-    console.log("✅ Webhook Verified");
-    return res.status(200).send(challenge); // MUST be plain text
+    console.log("🔍 Verify request:", { mode, token, challenge });
+
+    if (mode === "subscribe" && token === VERIFY_TOKEN) {
+      console.log("✅ Webhook Verified");
+      return res.status(200).send(challenge); // plain text only
+    }
+
+    console.log("❌ Webhook verification failed");
+    return res.sendStatus(403);
+
+  } catch (err) {
+    console.error("❌ Error in verifyWebhook:", err);
+    return res.sendStatus(403);
   }
-
-  console.log("❌ Webhook Verification Failed");
-  return res.sendStatus(403);
 };
+
 
 export const receiveMessage = async (req, res) => {
   try {
