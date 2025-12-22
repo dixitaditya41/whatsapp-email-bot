@@ -33,6 +33,11 @@ app.get('/', (req, res) => {
     res.send('Whatsapp Email Bot is running...');
 });
 
+app.use((req, res, next) => {
+    console.log("➡️ Incoming:", req.method, req.originalUrl);
+    next();
+  });
+
 app.use(routes)
 
 app.get("/test-send", async (req, res) => {
