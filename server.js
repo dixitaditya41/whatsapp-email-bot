@@ -42,7 +42,7 @@ app.get("/test-send", async (req, res) => {
             "✅ Message sent from backend successfully!"
         );
         const result2 = await sendWhatsAppMessage(
-            "919775116061",
+            "919076736310",
             "✅ Message sent from backend successfully! 2"
         );
         res.json({ result, result2 });
