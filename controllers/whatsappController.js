@@ -30,6 +30,7 @@ export const verifyWebhook = async (req, res) => {
 
 
 export const receiveMessage = async (req, res) => {
+  res.sendStatus(200); // ACK immediately
   try {
     // Log the incoming webhook payload for debugging
     console.log("📨 Webhook POST received");
