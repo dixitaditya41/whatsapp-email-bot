@@ -33,11 +33,6 @@ app.get('/', (req, res) => {
     res.send('Whatsapp Email Bot is running...');
 });
 
-app.use((req, res, next) => {
-    console.log("➡️ Incoming:", req.method, req.originalUrl);
-    next();
-  });
-
 app.use(routes)
 
 app.get("/test-send", async (req, res) => {
@@ -46,7 +41,11 @@ app.get("/test-send", async (req, res) => {
             "919628941748",
             "✅ Message sent from backend successfully!"
         );
-        res.json(result);
+        const result2 = await sendWhatsAppMessage(
+            "919775116061",
+            "✅ Message sent from backend successfully! 2"
+        );
+        res.json({ result, result2 });
     } catch (err) {
         console.error(err.response?.data || err.message);
         res.status(500).send("Failed to send message");
