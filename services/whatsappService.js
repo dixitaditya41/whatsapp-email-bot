@@ -1,7 +1,8 @@
 import axios from "axios";
 
 export const sendWhatsAppMessage = async (to, message) => {
-  const url = `https://graph.facebook.com/v17.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
+  
+  const url = `https://graph.facebook.com/v24.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
   console.log("Sending to:", to);
   console.log("Message:", message);
   await axios.post(
